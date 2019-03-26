@@ -1,23 +1,25 @@
-#coding=utf-8
-__author__ = '药师Aric'
-'''
-client端
-长连接，短连接，心跳
-'''
+#客户端Linux系统下：输入命令通过服务端返回
 import socket
-import time
-host = 'localhost'
-port = 8083
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1) #在客户端开启心跳维护
-client.connect((host, port))
+
+#声明协议类型,同事生成socket连接对象
+client = socket.socket()
+
+#链接地址和端口,元组(本地，端口)
+client.connect(('localhost', 6969))
+
+#使用input循环向服务端发送请求
 while True:
-    b = str(time.time())
-    client.send('hello world\r\n'.encode())
-    print('send data')
-    a = client.recv(1024)
-    c = str(time.time())
-    print(a.decode())
-    print(b)
-    print(float(a) - float(b))
-    time.sleep(1) #如果想验证长时间没发数据，SOCKET连接会不会断开，则可以设置时间长一点
+    msg = input(">>:").strip()
+    # if len(msg) == 0:continue
+
+    #发送数据 b将字符串转为bys类型
+    client.send(msg.encode("utf-8"))
+
+    #接收服务器端的返回，需要声明收多少，默认1024字节
+    data = client.recv(1024)
+
+    #打印data是recv的data
+    print("recv:",data)
+
+#关闭接口
+client.close()

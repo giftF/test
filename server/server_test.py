@@ -1,40 +1,49 @@
-# #coding=utf-8
-# import socket
-# BUF_SIZE = 1024
-# host = 'localhost'
-# port = 8082
-#
-# server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# server.bind((host, port))
-# server.listen(10) #并发数
-# while True:
-#     client, address = server.accept()
-#     data = client.recv(BUF_SIZE)
-#     client.send(data)
-#     print(data.decode()) #python3 要使用decode
-#     client.close()
-
-
-# coding=utf-8
-'''
-server端
-长连接，短连接，心跳
-'''
+#服务端Linux系统下：处理命令并返回
 import socket
-import time
+import os
 
-BUF_SIZE = 1024
-host = 'localhost'
-port = 8083
+#声明类型，生成socket链接对象
+server = socket.socket()
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind((host, port))
-server.listen(1)  # 接收的连接数
-client, address = server.accept()  # 因为设置了接收连接数为1，所以不需要放在循环中接收
-while True:  # 循环收发数据包，长连接
-    time.sleep(10)
-    data = client.recv(BUF_SIZE)
-    print(data.decode())  # python3 要使用decode
-    a = str(time.time()).encode()
-    client.send(a)
-    # client.close() #连接不断开，长连接
+#监听接收端口元组(本地，端口)，绑定要监听的端口
+server.bind(('localhost', 6969))
+#1.监听
+#2.“5”最大监听数，允许多少人在排队
+server.listen(5)
+print("我要开始等待客户端了")
+
+#循环锁定访问客户端
+while True:
+    #1.等待客户端 #会返回链接的标记位conn，与连接的地址
+    #2.客户端同过conn,addr进行通话
+    #3.conn就是客户端连接过来而在服务器端为其生成的一个连接实例
+    conn, addr = server.accept()
+    #查看标记位与IP地址
+    print(conn, addr)
+    print("客户端 他 进来了！")
+
+    #循环处理客户端请求
+    while True:
+        #1.接收数据,1024字节
+        #2.如果发不完会存在缓冲去，下次在发送。
+        #3.缓冲区每次最多发32768字节
+        #4.每个系统不同，超出数值会有限制。
+        data = conn.recv(102400)
+        #返回
+        print(data)
+
+        #Linux系统内可以判断是否为空。
+        if not data or data == b'1': break
+
+        #执行命令，赋值给变量
+        # res = os.popen(data).read()
+
+        #返回一个值，返回res命令
+        conn.send(data)
+
+        #sendll就是循环send，用法发送大型文件。
+        #conn.sendll(res)
+        # break
+
+#关闭链接
+server.close()
