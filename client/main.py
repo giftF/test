@@ -3,28 +3,29 @@ import sys
 import time
 from random import randint
 from threading import Thread
+import deploy
 
-from Script import lounge
+from Script.lounge import lounge
 import pygame
 import socket  # 导入 socket 模块
 
 from base import Protocol
 
-ADDRESS = ('127.0.0.1', 8712)  # ('foxyball.cn', 8712)  # 如果服务端在本机，请使用('127.0.0.1', 8712)
+deploy.ADDRESS = ('127.0.0.1', 8712)  # ('foxyball.cn', 8712)  # 如果服务端在本机，请使用('127.0.0.1', 8712)
 
-WIDTH, HEIGHT = 640, 480  # 窗口大小
+deploy.WIDTH, deploy.HEIGHT = 640, 480  # 窗口大小
 
-g_font = None
+deploy.g_font = None
 
-g_screen = None  # 窗口的surface
+deploy.g_screen = None  # 窗口的surface
 
-g_sur_role = None  # 人物的role
+deploy.g_sur_role = None  # 人物的role
 
-g_player = None  # 玩家操作的角色
+deploy.g_player = None  # 玩家操作的角色
 
-g_other_player = []  # 其他玩家
+deploy.g_other_player = []  # 其他玩家
 
-g_client = socket.socket()  # 创建 socket 对象
+deploy.g_client = socket.socket()  # 创建 socket 对象
 
 
 class Role:
@@ -121,7 +122,7 @@ def init_game():
     # 初始化pygame
     pygame.init()
     pygame.display.set_caption('网络游戏Demo')
-    g_screen = pygame.display.set_mode([WIDTH, HEIGHT])
+    g_screen = pygame.display.set_mode([deploy.WIDTH, deploy.HEIGHT])
     g_sur_role = pygame.image.load("./role.png").convert_alpha()  # 人物图片
     g_font = pygame.font.SysFont("fangsong", 24)
     # 初始化随机种子
@@ -182,7 +183,7 @@ def update_view():
     g_screen.blit(g_player.sur_name, (g_player.x, g_player.y - 20))
     g_screen.blit(g_sur_role, (g_player.x, g_player.y))
     # 画其他角色
-    for r in g_other_player:
+    for r in deploy.g_other_player:
         g_screen.blit(r.sur_name, (r.x, r.y - 20))
         g_screen.blit(g_sur_role, (r.x, r.y))
     # 刷新
@@ -206,6 +207,6 @@ if __name__ == '__main__':
     # 进入等待室
     lounge()
     # 初始化
-    init_game()
+    # init_game()
     # 游戏循环
-    main_loop()
+    # main_loop()
