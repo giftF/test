@@ -99,7 +99,7 @@ def msg_handler():
             # 如果bytes没数据了，就跳出循环
             if len(bytes) == 0:
                 break
-        if len(text) > 0:
+        if text[0] != None:
             messages = text
 
 def wait_room(loungetext):
@@ -109,8 +109,6 @@ def wait_room(loungetext):
     clock = pygame.time.Clock()
     pygame.display.set_caption('房间001')
     while True:
-        print(messages)
-        time.sleep(1)
         if isnew:
             # 处理服务器返回信息
             thead = Thread(target=msg_handler)
@@ -177,6 +175,7 @@ def wait_room(loungetext):
                         deploy.isready = users[i]['isready']
             except Exception as e:
                 print(e)
+                print(messages)
             # 刷新图s
             pygame.display.flip()
             clock.tick(60)
