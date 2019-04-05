@@ -35,5 +35,3 @@ if __name__ == '__main__':
     pygame.init()
     # 输入名称
     lounge()
-    # 进入等待室
-    wait_room()

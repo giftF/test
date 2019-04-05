@@ -12,54 +12,7 @@ import pygame
 import socket  # 导入 socket 模块
 
 from base import Protocol
-
-def pck_handler(pck):
-    p = Protocol(pck)
-    try:
-        pck_type = p.get_str()
-        if pck_type == "games":
-            try:
-                deploy.games = eval(p.get_str())
-                # print(time.time())
-                # print(deploy.games)
-            except Exception as e:
-                print(e)
-    except Exception as e:
-        print(e)
-
-def msg_handler():
-    """
-    处理服务端返回的消息
-    """
-    while True:
-        bytes = deploy.g_client.recv(1024)
-        # 以包长度切割封包
-        while True:
-            # 读取包长度
-            length_pck = int.from_bytes(bytes[:4], byteorder='little')
-            # 截取封包
-            pck = bytes[4:4 + length_pck]
-            # 删除已经读取的字节
-            bytes = bytes[4 + length_pck:]
-            # 把封包交给处理函数
-            pck_handler(pck)
-            # 如果bytes没数据了，就跳出循环
-            if len(bytes) == 0:
-                break
-
-def send_new_role(name):
-    """
-    告诉服务端有新玩家加入
-    """
-    # 构建数据包
-    p = Protocol()
-    # 请求名称，用来区分该请求执行的操作
-    p.add_str("newuser")
-    # 传入角色的名字
-    p.add_str(name)
-    data = p.get_pck_has_head()
-    # 发送数据包
-    deploy.g_client.sendall(data)
+from Script.wait_room import wait_room
 
 def lounge():
     window_size = (800, 600)
@@ -104,12 +57,6 @@ def lounge():
             '''
             输入名字后，点击开始按钮，关闭当前窗口，创建一个新窗口，并向服务器发送新玩家加入信息
             '''
-            break_switch = False
             deploy.g_client.connect(deploy.ADDRESS)
             # 开始接受服务端消息
-            thead = Thread(target=msg_handler)
-            thead.setDaemon(True)
-            thead.start()
-            # 告诉服务端有新玩家
-            send_new_role(text)
-            break
+            wait_room(text)

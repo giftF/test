@@ -22,6 +22,7 @@ WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
+messages = []
 
 # 设置直线的坐标
 points = [(200, 75), (300, 25), (400, 75)]
@@ -46,20 +47,87 @@ def readying():
     # 发送数据包
     deploy.g_client.sendall(data)
 
-def wait_room():
+
+def send_new_role(name):
+    """
+    告诉服务端有新玩家加入
+    """
+    # 构建数据包
+    p = Protocol()
+    # 请求名称，用来区分该请求执行的操作
+    p.add_str("newuser")
+    # 传入角色的名字
+    p.add_str(name)
+    data = p.get_pck_has_head()
+    # 发送数据包
+    deploy.g_client.sendall(data)
+
+def pck_handler(pck):
+    p = Protocol(pck)
+    try:
+        pck_type = p.get_str()
+        if pck_type == "games":
+            try:
+                return eval(p.get_str())
+                # print(time.time())
+                # print(messages[0])
+            except Exception as e:
+                print(e)
+    except Exception as e:
+        print(e)
+
+isnew = True
+
+def msg_handler():
+    """
+    处理服务端返回的消息
+    """
+    global messages
+    while True:
+        bytes = deploy.g_client.recv(1024)
+        text = []
+        # 以包长度切割封包
+        while True:
+            # 读取包长度
+            length_pck = int.from_bytes(bytes[:4], byteorder='little')
+            # 截取封包
+            pck = bytes[4:4 + length_pck]
+            # 删除已经读取的字节
+            bytes = bytes[4 + length_pck:]
+            # 把封包交给处理函数
+            text.append(pck_handler(pck))
+            # 如果bytes没数据了，就跳出循环
+            if len(bytes) == 0:
+                break
+        if len(text) > 0:
+            messages = text
+
+def wait_room(loungetext):
+    global isnew
     window_size = (800, 600)
     deploy.screen = pygame.display.set_mode(window_size)
     clock = pygame.time.Clock()
     pygame.display.set_caption('房间001')
     while True:
+        print(messages)
+        time.sleep(1)
+        if isnew:
+            # 处理服务器返回信息
+            thead = Thread(target=msg_handler)
+            thead.setDaemon(True)
+            thead.start()
+            send_new_role(loungetext)
+            isnew = False
+
         for event in pygame.event.get():
             # 查找关闭窗口事件
             if event.type == QUIT:
                 sys.exit()
             sx, sy = pygame.mouse.get_pos()
-            if event.type == MOUSEBUTTONDOWN and 460 < sx < 560 and 40 + (100 * deploy.i) < sy < 40 + (
-                    100 * (deploy.i + 1)):
-                readying()
+            if deploy.i != False:
+                if event.type == MOUSEBUTTONDOWN and 460 < sx < 560 and 40 + (100 * deploy.i) < sy < 40 + (
+                        100 * (deploy.i + 1)):
+                    readying()
             # 填充背景色
             deploy.screen.fill((255, 255, 255))
 
@@ -80,8 +148,8 @@ def wait_room():
             pygame.font.Font('bb2117/HWKT.ttf', 26)
             x = 45
             try:
-                users = deploy.games['users']
-                talk = deploy.games['talk']
+                users = messages[0]['users']
+                talk = messages[0]['talk']
                 for i in range(len(users)):
                     WJ = deploy.g_font.render('玩家%s' % (i+1), True, (0, 0, 0))
                     WJ1 = WJ.get_rect()
