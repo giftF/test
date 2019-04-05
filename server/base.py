@@ -47,7 +47,7 @@ class Protocol:
         self.bs += bytes_val
 
     def add_str(self, val):
-        bytes_val = bytearray(val.encode(encoding='utf8'))
+        bytes_val = bytearray(str(val).encode(encoding='utf8'))
         bytes_length = bytearray(len(bytes_val).to_bytes(2, byteorder='little'))
         self.bs += (bytes_length + bytes_val)
 

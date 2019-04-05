@@ -1,45 +1,55 @@
-# -*- coding: gbk -*-
+# -*- coding: utf-8 -*-
+# @Author: å››å¶è‰
+# @Date:   2017-11-04 19:15:46
+# @Last Modified by:   Administrator
+# @Last Modified time: 2017-11-08 17:03:48
 
 import pygame
+import sys
+import math
 from pygame.locals import *
 
-a = pygame.font.get_fonts()
-for i in a:
-    print(i)
+# pygame åˆå§‹åŒ–
+pygame.init()
 
-def main():
-	# Initialise screen
-	pygame.init()
-	screen = pygame.display.set_mode((650, 150))
-	pygame.display.set_caption(u'»ù´¡ pygame ³ÌĞò')
+# è®¾ç½®èƒŒæ™¯é¢œè‰²å’Œçº¿æ¡é¢œè‰²
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
 
-	# Fill background
-	background = pygame.Surface(screen.get_size())
-	background = background.convert()
-	background.fill((250, 250, 250))
+# è®¾ç½®ç›´çº¿çš„åæ ‡
+points = [(200, 75), (300, 25), (400, 75)]
 
-	# Display some text
-	#font = pygame.font.Font(None, 60)  #Ô­Ê¼´úÂë£¬Ê¹ÓÃÄ¬ÈÏ×ÖÌå£¬²»ÄÜÏÔÊ¾ÖĞÎÄ
-	#font = pygame.font.Font('../FredGuo/simkai.ttf', 60)  #ÕıÈ·£¬ÎÄ¼şÃû¿ÉÒÔ°üº¬Â·¾¶
-	#font = pygame.font.Font('¿¬Ìå', 60)  #´íÎó£¬name²ÎÊıÓ¦¸ÃÊÇ×ÖÌåµÄÎÄ¼şÃû
-	font = pygame.font.SysFont('»ªÎÄ¿¬Ìå', 60)  #ÕıÈ·£¬name²ÎÊıÓ¦¸ÃÊÇ×ÖÌåÃû£¬²¢ÇÒ×Ö·û¼¯ÒªÓëÏµÍ³µÄÏàÍ¬
-	text = font.render(u"Hello ÎÒ°®Äã", 1, (10, 10, 10))  #ÏÔÊ¾ÄÚÈİ±ØĞë×ª»»³ÉUnicode£¬·ñÔòÖĞÎÄ²»ÄÜÕı³£ÏÔÊ¾
-	textpos = text.get_rect()
-	textpos.center = background.get_rect().center
-	background.blit(text, textpos)
+# è®¾ç½®èƒŒæ™¯æ¡†å¤§å°
+size = width, height = 600, 600
+# position = width // 2, height // 2
 
-	# Blit everything to the screen
-	screen.blit(background, (0, 0))
-	pygame.display.flip()
+# è®¾ç½®å¸§ç‡ï¼Œè¿”å›clock ç±»
+clock = pygame.time.Clock()
 
-	# Event loop
-	while 1:
-		for event in pygame.event.get():
-			if event.type == QUIT:
-				return
+screen = pygame.display.set_mode(size)
+pygame.display.set_caption("llls make")
 
-		screen.blit(background, (0, 0))
-		pygame.display.flip()
+while True:
+    for event in pygame.event.get():
+        # æŸ¥æ‰¾å…³é—­çª—å£äº‹ä»¶
+        if event.type == QUIT:
+            sys.exit()
 
+    # å¡«å……èƒŒæ™¯è‰²
+    screen.fill(WHITE)
 
-if __name__ == '__main__':main()
+    # ç”»ä¸å°é—­çš„ä¸¤æ¡ç›´çº¿
+    pygame.draw.lines(screen, GREEN, 0, points, 1)
+
+    # ç”»ä¸æŠ—é”¯é½¿çš„ä¸€æ¡ç›´çº¿
+    pygame.draw.line(screen, BLUE, (100, 200), (540, 250), 1)
+
+    # ç”»æŠ—é”¯é½¿çš„ä¸€æ¡ç›´çº¿
+    pygame.draw.aaline(screen, BLUE, (100, 250), (540, 300), 1)
+
+    # åˆ·æ–°å›¾s
+    pygame.display.flip()
+
+    clock.tick(60)

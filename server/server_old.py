@@ -1,63 +1,32 @@
 import socketserver
 import threading
 from time import sleep
-import random
 
 from base import Protocol
 from Script.My_Redis import My_redis
 
-import random
-
-seed = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-sa = []
-for i in range(8):
-  sa.append(random.choice(seed))
-code = ''.join(sa)
-
-room = {
-    'users': 'room%s' % code,
-    'talk': 'talk%s' % code,
-    'monster': 'monster%s' % code
-}
-
-# 初始化redis
 MR = My_redis()
-MR.set(room['users'], str([]))
-MR.set(room['talk'], '')
-MR.set(room['monster'], str([]))
 
 ADDRESS = ('0.0.0.0', 8712)  # 绑定地址
+
 g_conn_pool = []  # 连接池
 
-userreadydict = {
-    'Y': 'N',
-    'N': 'Y'
-}
 
-usercount = 0
-
-# 初始化user数据
 class Conn:
     def __init__(self, conn):
-        # 连接信息
         self.conn = conn
-        self.user = {
-            'x': None,
-            'Y': None,
-            'number': None,
-            'name': None,
-            'my': None,
-            'troops': {},
-            'isready': 'N',
-            'race': 'Random',
-            'Money': 1000,
-        }
+        self.x = None
+        self.y = None
+        self.number = None
+        self.name = None
+        self.my = None
+        self.troops = {}
+        self.isready = 'N'
+        self.race = 'Random'
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
-
     def setup(self):
         self.request.sendall("连接服务器成功!".encode(encoding='utf8'))
-        self.request.settimeout(0.1)
         # 加入连接池
         conn = Conn(self.request)
         g_conn_pool.append(conn)
@@ -82,23 +51,11 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                         break
                     # print("客户端消息：", bytes.decode(encoding="utf8"))
             except Exception as e:  # 意外掉线
-                err = e.args[0]
-                if err == 'timed out':
-                    pamras = {
-                        'users': eval(MR.get(room['users'])),
-                        'talk': MR.get(room['talk']),
-                        'monster': eval(MR.get(room['monster']))
-                    }
-                    for u in pamras['users']:
-                        if u['name'] == self.get_conn().user['name']:
-                            u['my'] = 'Y'
-                    ret = Protocol()
-                    ret.add_str('games')
-                    ret.add_str(str(pamras))
-                    self.request.sendall(ret.get_pck_has_head())
-                else:
-                    print('用户可能掉线了')
-                    break
+                print("---------------------------")
+                print(e)
+                print("玩家：【%s】掉线啦。" % self.get_conn().name)
+                self.remove()
+                break
 
     def finish(self):
         pass
@@ -154,48 +111,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         """
         解析数据包
         """
-        global usercount
         p = Protocol(pck)
         pck_type = p.get_str()
-        users = eval(MR.get(room['users']))
-        talk = MR.get(room['talk'])
-
-        print(users)
-
-        if pck_type == "newuser":
-            self.get_conn().user['name'] = '%s%s' % (p.get_str(), usercount)
-            usercount += 1
-            self.get_conn().user['number'] = len(g_conn_pool)
-            users.append(self.get_conn().user)
-            talk += '欢迎%s加入游戏！\n' % self.get_conn().user['name']
-            MR.set(room['users'], str(users))
-            MR.set(room['talk'], str(talk))
-        elif pck_type == "change":
-            pass
-        elif pck_type == "ready":
-            print('收到一个ready请求')
-            user_name = p.get_str()
-            user_number = int(user_name[-1])
-            user_isready = userreadydict[p.get_str()]
-
-            print(user_name)
-            print(user_isready)
-
-            for r in g_conn_pool:
-                if r == self.get_conn() and r.user['name'] == user_name:
-                    users[user_number-1]['isready'] = user_isready
-                    MR.set(room['users'], str(users))
-                    print('修改成功')
-        elif pck_type == "talk":
-            pass
-        elif pck_type == "out":
-            pass
-        elif pck_type == "move":
-            pass
-        elif pck_type == "build":
-            pass
-        elif pck_type == "up":
-            pass
 
         if pck_type == 'newrole':
             self.get_conn().x = p.get_int32()
@@ -203,8 +120,18 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.get_conn().name = p.get_str()
             self.get_conn().number = len(g_conn_pool)
             self.get_conn().my = None
+
+            print(len(g_conn_pool))
+            for i in g_conn_pool:
+                print(i.__dir__())
+                print('x : %s ' % i.x)
+                print('y : %s ' % i.y)
+                print('name : %s ' % i.name)
+                print('number : %s ' % i.number)
+
             self.new_role()  # 告诉当前服务器的其他玩家，有新玩家加入
             self.other_role()  # 告诉新加入的玩家，当前服务器的其他玩家信息
+
         elif pck_type == 'move':
             self.get_conn().x = p.get_int32()
             self.get_conn().y = p.get_int32()
@@ -235,3 +162,15 @@ if __name__ == '__main__':
     # 主线程逻辑
     while True:
         sleep(3)
+# linux下后台运行不能使用input
+#         cmd = input("""--------------------------
+# 输入1:查看当前在线人数
+# 输入2:关闭服务端
+# """)
+#         if cmd == '1':
+#             print("--------------------------")
+#             print("当前在线人数：", len(g_conn_pool))
+#         elif cmd == '2':
+#             server.shutdown()
+#             server.server_close()
+#             exit()
