@@ -178,14 +178,18 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             user_number = int(user_name[-1])
             user_isready = userreadydict[p.get_str()]
 
-            print(user_name)
-            print(user_isready)
+            # print(user_name)
+            # print(user_isready)
 
             for r in g_conn_pool:
                 if r == self.get_conn() and r.user['name'] == user_name:
-                    users[user_number-1]['isready'] = user_isready
-                    MR.set(room['users'], str(users))
-                    print('修改成功')
+                    for u in users:
+                        if u['name'] == user_name:
+                            u['isready'] = user_isready
+                            MR.set(room['users'], str(users))
+                            print('修改成功')
+                            break
+                    break
         elif pck_type == "talk":
             pass
         elif pck_type == "out":

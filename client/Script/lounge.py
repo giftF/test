@@ -15,11 +15,17 @@ from base import Protocol
 
 def pck_handler(pck):
     p = Protocol(pck)
-    pck_type = p.get_str()
-    if pck_type == "games":
-        deploy.games = eval(p.get_str())
-        print(time.time())
-        print(deploy.games)
+    try:
+        pck_type = p.get_str()
+        if pck_type == "games":
+            try:
+                deploy.games = eval(p.get_str())
+                # print(time.time())
+                # print(deploy.games)
+            except Exception as e:
+                print(e)
+    except Exception as e:
+        print(e)
 
 def msg_handler():
     """
